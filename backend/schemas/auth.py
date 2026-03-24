@@ -11,6 +11,7 @@ class TokenResponse(BaseModel):
     accessToken: str
     refreshToken: Optional[str] = None
     athlete: dict
+    user_id: str
     expiresIn: int
 
 

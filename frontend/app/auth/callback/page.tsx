@@ -12,12 +12,6 @@ import {
   Link as ChakraLink,
 } from '@chakra-ui/react';
 import SyncLoadingPage from '../../components/SyncLoadingPage';
-import { jwtDecode } from 'jwt-decode';
-
-interface TokenPayload {
-  athlete_id: number;
-  sub?: string;
-}
 
 export default function AuthCallback() {
   const [loading, setLoading] = useState(true);
@@ -62,19 +56,21 @@ export default function AuthCallback() {
 
         // Store tokens in localStorage (or cookies for production)
         localStorage.setItem('accessToken', data.accessToken);
-        localStorage.setItem('athleteData', JSON.stringify(data.athlete));
+        localStorage.setItem(
+          'athleteData',
+          JSON.stringify({
+            strava_id: data.athlete.id,
+            user_id: data.user_id,
+            firstname: data.athlete.firstname,
+            lastname: data.athlete.lastname,
+            username: data.athlete.username,
+            profile_medium: data.athlete.profile_medium,
+            profile: data.athlete.profile,
+          })
+        );
 
-        // Decode JWT to get user_id
-        try {
-          const decoded = jwtDecode<TokenPayload>(data.accessToken);
-          const userIdFromToken = decoded.sub || decoded.athlete_id?.toString();
-
-          if (userIdFromToken) {
-            setUserId(userIdFromToken);
-          }
-        } catch (decodeError) {
-          console.error('Failed to decode token:', decodeError);
-        }
+        // Set user ID from response
+        setUserId(data.user_id);
 
         // Check if we need to show sync loading page
         if (data.should_sync && data.is_first_sync) {

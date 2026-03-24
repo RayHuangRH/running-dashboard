@@ -36,12 +36,15 @@ def create_jwt_token(strava_response: StravaTokenResponse) -> str:
     return jwt.encode(jwt_payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
 
-def create_token_response(strava_response: StravaTokenResponse) -> TokenResponse:
+def create_token_response(
+    strava_response: StravaTokenResponse, user_id: str
+) -> TokenResponse:
     """
     Creates a TokenResponse from a Strava token response.
 
     Args:
         strava_response: The response from Strava
+        user_id: The UUID of the user from the database
 
     Returns:
         TokenResponse: The token response to send to the frontend
@@ -52,6 +55,7 @@ def create_token_response(strava_response: StravaTokenResponse) -> TokenResponse
         accessToken=jwt_token,
         refreshToken=strava_response.refresh_token,
         athlete=strava_response.athlete,
+        user_id=user_id,
         expiresIn=strava_response.expires_in,
     )
 

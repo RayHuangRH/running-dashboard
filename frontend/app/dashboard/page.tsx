@@ -12,17 +12,21 @@ import {
   VStack,
   HStack,
   Image,
-  Grid,
-  GridItem,
-  Card,
-  CardBody,
-  Code,
   Spinner,
   Link as ChakraLink,
+  Card,
+  CardBody,
 } from '@chakra-ui/react';
+import MetricsCards from '../components/MetricsCards';
+import TrendGraphs from '../components/TrendGraphs';
+import DateRangeSelector from '../components/DateRangeSelector';
+import { getUserActivities } from '../utils/api';
+import { filterActivitiesByDateRange } from '../utils/metrics';
+import { Activity, DateRange } from '../types/activity';
 
 interface AthleteData {
-  id: number;
+  strava_id: number;
+  user_id: string;
   username: string;
   firstname: string;
   lastname: string;
@@ -32,7 +36,9 @@ interface AthleteData {
 
 export default function Dashboard() {
   const [athlete, setAthlete] = useState<AthleteData | null>(null);
+  const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dateRange, setDateRange] = useState<DateRange>('30d');
 
   useEffect(() => {
     const athleteData = localStorage.getItem('athleteData');
@@ -42,11 +48,26 @@ export default function Dashboard() {
     setLoading(false);
   }, []);
 
+  useEffect(() => {
+    if (athlete?.user_id) {
+      loadActivities(athlete.user_id);
+    }
+  }, [athlete?.user_id]);
+
+  const loadActivities = async (userId: string) => {
+    console.log('loading');
+    const data = await getUserActivities(userId);
+    console.log('activities', data);
+    setActivities(data);
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('athleteData');
     window.location.href = '/';
   };
+
+  const filteredActivities = filterActivitiesByDateRange(activities, dateRange);
 
   if (loading) {
     return (
@@ -117,80 +138,17 @@ export default function Dashboard() {
           </CardBody>
         </Card>
 
-        {/* Dashboard Grid */}
-        <Grid
-          templateColumns={{
-            base: '1fr',
-            md: 'repeat(2, 1fr)',
-            lg: 'repeat(3, 1fr)',
-          }}
-          gap={6}
-          mb={8}
-        >
-          {/* Activities Card */}
-          <Card>
-            <CardBody>
-              <Heading as="h3" size="md" color="gray.900" mb={2}>
-                Activities
-              </Heading>
-              <Text fontSize="3xl" fontWeight="bold" color="orange.500">
-                Coming Soon
-              </Text>
-              <Text color="gray.600" fontSize="sm" mt={1}>
-                Your recent activities
-              </Text>
-            </CardBody>
-          </Card>
+        {/* Date Range Selector */}
+        <DateRangeSelector
+          selectedRange={dateRange}
+          onRangeChange={setDateRange}
+        />
 
-          {/* Statistics Card */}
-          <Card>
-            <CardBody>
-              <Heading as="h3" size="md" color="gray.900" mb={2}>
-                Statistics
-              </Heading>
-              <Text fontSize="3xl" fontWeight="bold" color="blue.500">
-                Coming Soon
-              </Text>
-              <Text color="gray.600" fontSize="sm" mt={1}>
-                Monthly and yearly stats
-              </Text>
-            </CardBody>
-          </Card>
+        {/* Key Metrics Cards */}
+        <MetricsCards activities={filteredActivities} dateRange={dateRange} />
 
-          {/* Goals Card */}
-          <Card>
-            <CardBody>
-              <Heading as="h3" size="md" color="gray.900" mb={2}>
-                Goals
-              </Heading>
-              <Text fontSize="3xl" fontWeight="bold" color="green.500">
-                Coming Soon
-              </Text>
-              <Text color="gray.600" fontSize="sm" mt={1}>
-                Track your running goals
-              </Text>
-            </CardBody>
-          </Card>
-        </Grid>
-
-        {/* Debug Info */}
-        <Card bg="gray.100">
-          <CardBody>
-            <Heading as="h3" size="sm" color="gray.700" mb={2}>
-              Debug Info
-            </Heading>
-            <Code
-              p={3}
-              borderRadius="md"
-              display="block"
-              overflowX="auto"
-              fontSize="xs"
-              color="gray.600"
-            >
-              {JSON.stringify(athlete, null, 2)}
-            </Code>
-          </CardBody>
-        </Card>
+        {/* Trend Graphs */}
+        <TrendGraphs activities={filteredActivities} />
       </Container>
     </Box>
   );

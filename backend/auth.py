@@ -54,7 +54,7 @@ async def strava_callback(
     background_tasks.add_task(_trigger_activity_sync, str(user.id), is_first_sync)
 
     # Return token and sync info
-    token_response = create_token_response(strava_response)
+    token_response = create_token_response(strava_response, str(user.id))
     return {
         **token_response.model_dump(),
         "should_sync": True,
