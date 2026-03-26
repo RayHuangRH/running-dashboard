@@ -137,20 +137,10 @@ export default function TrendGraphs({ activities }: TrendGraphsProps) {
                     dataKey="heartRate"
                     stroke="#f56565"
                     name="Heart Rate (bpm)"
-                    dot={(props) => {
-                      if (props.payload.heartRate === null) return null;
-                      return (
-                        <circle
-                          cx={props.cx}
-                          cy={props.cy}
-                          r={4}
-                          fill="#f56565"
-                        />
-                      );
-                    }}
                     connectNulls
                     strokeWidth={2}
                     yAxisId="right"
+                    isAnimationActive={false}
                   />
                 )}
                 <YAxis
